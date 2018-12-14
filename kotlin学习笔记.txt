@@ -1,0 +1,269 @@
+先是《Kotlin实战》的读书笔记，再来是AS上的实操
+1 Kotlin语法-基本语句和关键字
+
+1.1Hello World！
+
+fun main() {
+    println("Hello World!")
+}
+↑能在线跑起来的第一行代码
+
+1.2函数
+比java简洁很多的声明
+
+fun main() {
+    println(compare(10,5))
+}
+fun compare(a:Int,b:Int):Boolean{
+    return if(a>b) true else false
+}
+结果true
+
+比较两个数，前面大的返回true（在线补全贼难受）
+return那句话是简化版的if-else分支顺带一提没有分号！！
+
+1.3变量
+val：一次赋值，不能更改（final关键字）
+var：可变
+
+fun main() {
+    val a=10
+    var b=5
+    println(compare(a,b))
+    b=20
+    println(compare(a,b))
+}
+fun compare(a:Int,b:Int):Boolean{
+    return if(a>b) true else false
+}
+结果true false
+
+声明的类型要对上号的说，当然是有类型转换的
+
+
+1.4绝对比Java好用的字符串拼接
+java要拼接字符串要这样做"adsa"+str1+":"+str2
+或者String.format("%s,fsfa%s",str1,str2)
+点双引号跟转义超级麻烦的~
+
+fun main() {
+    val a = "哈哈哈哈"
+    var b = "132456"
+    println("string:${a}hafdsjfakf$$$-----$${b}")
+}
+输出
+string:哈哈哈哈hafdsjfakf$$$-----$132456
+毕竟大括号里面可以放表达式什么的，弄个if-else输出也是可以的，弄个正则也是可以的
+怎么说除了大括号转义不造怎么办其实也没啥缺点是吧……遇到坑再说
+简洁多了
+
+1.5自定义类
+总的来说就是省略一些【基本大家创建类都会写的get/set方法】
+
+class Class(
+    val ClassName: String ,
+   var ClassNumber: Int,
+     var ClassStudent:Student
+)
+open class Person(
+    val name: String,
+    var isMarried: Boolean
+)
+ class Student (
+     val StudentName:String,
+     var StudentNumber:Int):Person(StudentName,false)
+
+fun main() {
+    val one =Class("One",1,Student("Bob",1))
+    var two = Class("Two",2,Student("Ann", 100))
+   println("${one.ClassName}++${one.ClassNumber}++${one.ClassStudent.StudentName}++${one.ClassStudent.StudentNumber}")
+   println("${two.ClassName}++${two.ClassNumber}++${two.ClassStudent.StudentName}++${two.ClassStudent.StudentNumber}")
+   two.ClassStudent = Student("Alice", 3)
+   println("${two.ClassName}++${two.ClassNumber}++${two.ClassStudent.StudentName}++${two.ClassStudent.StudentNumber}")
+}
+输出
+One++1++Bob++1
+Two++2++Ann++100
+Two++2++Alice++3
+
+上面这串书上应该属于超纲内容_(:з)∠)_
+val 定义过后只能get，set会报错的不用担心
+var 定义过后可以get/set
+开放可继承要加关键字open
+（下一个进阶大概是搞明白怎么加入一个List到类里面了
+
+1.6文件组成
+跟java分布没差，不知道混合编程有没难度
+
+1.7枚举
+1.7.1一般枚举：
+enum class Color {
+    RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET
+}
+1.7.2带属性枚举：
+enum class Color(
+        val r: Int, val g: Int, val b: Int
+) {
+    RED(255, 0, 0), ORANGE(255, 165, 0),
+    YELLOW(255, 255, 0), GREEN(0, 255, 0), BLUE(0, 0, 255),
+    INDIGO(75, 0, 130), VIOLET(238, 130, 238);
+
+    fun rgb() = (r * 256 + g) * 256 + b
+}
+
+fun main(args: Array<String>) {
+    println(Color.BLUE.rgb())
+}
+来自官方的源码，看起来真好用，不过我没想到能怎么用（看着好像后台源码啊）
+1.7.3when处理枚举类
+据说when跟switch差不多，我看完这部分发现：人家不用搭配case这类的关键字也可以使用（lamda了解一下？）
+
+enum class Color {
+    RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET
+}
+
+fun getMnemonic(color: Color) =
+    when (color) {
+        Color.RED -> "Richard"
+        Color.ORANGE -> "Of"
+        Color.YELLOW -> "York"
+        Color.GREEN -> "Gave"
+        Color.BLUE -> "Battle"
+        Color.INDIGO -> "In"
+        Color.VIOLET -> "Vain"
+    }
+
+fun main(args: Array<String>) {
+    println(getMnemonic(Color.BLUE))
+}
+当然加上逗号分隔可以多个选项指向一个分支啦，不过没有case穿透倒是真的
+搭上setof形成跟switch-case这样子的组合
+
+enum class Color {
+    RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET
+}
+
+fun mix(c1: Color, c2: Color) =
+        when (setOf(c1, c2)) {
+            setOf(Color.RED, Color.YELLOW) -> Color.ORANGE
+            setOf(Color.YELLOW, Color.BLUE) ->Color.GREEN
+            setOf(Color.BLUE, Color.VIOLET) -> Color.INDIGO
+            else -> throw Exception("Dirty color")
+        }
+
+fun main(args: Array<String>) {
+    println(mix(Color.BLUE, Color.YELLOW))
+}
+然后分支里面能加{}形成一个方法的，在fun加上返回值能够形成switch-case：return这样子的组合啦
+setOf括号里面不分先后
+
+不用setOf的时候可以直接【断言->分支】这样子走起也是可以的
+
+fun mixOptimized(c1: Color, c2: Color) =
+    when {
+        (c1 == RED && c2 == YELLOW) ||
+        (c1 == YELLOW && c2 == RED) ->
+            ORANGE
+
+        (c1 == YELLOW && c2 == BLUE) ||
+        (c1 == BLUE && c2 == YELLOW) ->
+            GREEN
+
+        (c1 == BLUE && c2 == VIOLET) ||
+        (c1 == VIOLET && c2 == BLUE) ->
+            INDIGO
+
+        else -> throw Exception("Dirty color")
+    }
+上面的简化（第二种写法（推荐））
+
+1.8is关键字
+等同于instanceOf，不过is下面不用再做显示转换了
+
+1.9if-else
+Java的三目运算没有啦，不用貌似用if（a）b else c更加能看懂
+加了{}之后
+最后一行代码会视为结果返回
+最后一行代码会视为结果返回
+最后一行代码会视为结果返回
+（没加{}一定会报错的啦）
+用回上面的代码：
+fun main() {
+    val a=10
+    var b=5
+    println(compare(a,b))
+    b=20
+    println(compare(a,b))
+}
+fun compare(a:Int,b:Int):Boolean{
+    return if(a>b) {true;false} else {false;true}
+}
+结果：
+false
+true
+顺带一提因为kotlin每行代码后面没有分号啦~所以同一行里面不同语义的用分号代替上面那个分号不写可以直接改成换行也行的~
+（要是最后一行是log的话……大概会报错吧
+当然啦以上这几个关键字混用易懂又简洁（据说setOf要先set再比较的，效率有点低？）
+
+1.10循环
+1.10.1while
+while跟do-while都是同Java没啥区别啦，下一个~
+
+1.10.2for
+可以这样写
+for(i in 1..50){} 相当于 for(int i = 1;i <= 50; i++){}
+也可以这样
+for(i in 50 downTo 1) 相当于for(int i = 50;i >= 1; i--){}
+还可以加
+for (i in 50 downTo 0 step 2){}  相当于for(int i = 50;i >= 1; i-2){}
+我最常用的循环的转换
+for(i in 0 until 50){}  相当于for(int i = 0;i < 50; i++){}
+
+1.10.3for-in
+扩展了一下下Java的foreach，毕竟要在Java上反实现这些的时候多了好几行代码呢……
+for(类in列表)
+也可以是
+for((k,v)in map)
+这些都是可以试试的，语法没错大多会成功
+后面讲了不少in的用途，都是检查验证这种，大概比equal啦compare啦==啦有一定的优势吧
+
+1.11异常处理
+一样是用throw 抛出错误的
+同样是try-catch-finally，不过不用在表达式显示会抛出啥，多个不确定的？就好啦
+fun readNumber(reader: BufferedReader): Int? {
+    try {
+        val line = reader.readLine()
+        return Integer.parseInt(line)
+    }
+    catch (e: NumberFormatException) {
+        return null
+    }
+    finally {
+        reader.close()
+    }
+}
+章结是太长不看版，总结可以同书（p44）一致了
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
